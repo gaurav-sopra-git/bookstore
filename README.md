@@ -28,9 +28,7 @@ The suggested repository layout is:
 
 ```text
 bookstore/
-├── README.md
-├── backend/
-│   ├── pom.xml
+|   ├── pom.xml
 │   └── src/
 │       ├── main/
 │       │   ├── java/com/bookstore/app/
