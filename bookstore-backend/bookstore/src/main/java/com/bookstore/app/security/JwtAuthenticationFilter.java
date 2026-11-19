@@ -13,7 +13,7 @@ import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-	
+
 	private final JwtService jwtService;
 
 	public JwtAuthenticationFilter(JwtService jwtService) {
@@ -23,11 +23,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws ServletException, IOException {
-		String header = request.getHeader("Authorization");
-		if (header != null && header.startsWith("Bearer ")
-				&& SecurityContextHolder.getContext().getAuthentication() == null) {
+		String token = null;
+		Cookie[] cookies = request.getCookies();
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				if ("BOOKSTORE_ACCESS_TOKEN".equals(cookie.getName())) {
+					token = cookie.getValue();
+					break;
+				}
+			}
+		}
+		if (token != null && !token.isBlank() && SecurityContextHolder.getContext().getAuthentication() == null) {
 			try {
-				Claims claims = jwtService.parse(header.substring(7));
+				Claims claims = jwtService.parse(token);
 				Number idClaim = (Number) claims.get("uid");
 				Long id = idClaim.longValue();
 				String email = claims.getSubject();

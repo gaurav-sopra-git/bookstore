@@ -14,7 +14,10 @@ public final class AuthDtos {
 	public record LoginRequest(@NotBlank @Email String email, @NotBlank String password) {
 	}
 
-	public record AuthResponse(String accessToken, String tokenType, long expiresIn, UserResponse user) {
+	public record AuthResult(String accessToken, long expiresIn, UserResponse user) {
+	}
+
+	public record AuthResponse(UserResponse user) {
 	}
 
 	public record UserResponse(Long id, String name, String email, String role) {

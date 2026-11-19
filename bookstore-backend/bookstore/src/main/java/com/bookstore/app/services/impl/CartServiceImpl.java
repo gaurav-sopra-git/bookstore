@@ -124,7 +124,9 @@ public class CartServiceImpl implements CartService {
 
 	
 	private CartResponse toResponse(Cart c) {
-		List<CartItemResponse> items = c.getItems().stream().map(mapper::toItemResponse).toList();
+		List<CartItemResponse> items = c.getItems().stream()
+				.map(mapper::toItemResponse)
+				.toList();
 		
 		int count = items.stream()
 				   .mapToInt(CartItemResponse::quantity)

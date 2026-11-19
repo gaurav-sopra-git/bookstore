@@ -20,7 +20,6 @@ public final class TestData {
 		return User.register("Test User", email, "hashed-password");
 	}
 
-	// The entities have no id setters. Unit tests never hit a database, so set the id directly.
 	public static <T> T withId(T entity, Long id) {
 		ReflectionTestUtils.setField(entity, "id", id);
 		return entity;

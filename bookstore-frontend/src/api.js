@@ -1,7 +1,24 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
-function readAuthToken() {
-  return localStorage.getItem("bookstore_access_token");
+function readCookie(name) {
+  const prefix = `${name}=`;
+  const value = document.cookie.split(";").map((part) => part.trim())
+    .find((part) => part.startsWith(prefix));
+  return value ? decodeURIComponent(value.substring(prefix.length)) : null;
+}
+
+async function ensureCsrfToken() {
+  let token = readCookie("XSRF-TOKEN");
+  if (!token) {
+    const response = await fetch(`${API_BASE}/api/auth/csrf`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!response.ok) throw new Error("Could not initialise security token");
+    const result = await response.json();
+    token = readCookie("XSRF-TOKEN") || result.token;
+  }
+  return token;
 }
 
 export async function apiRequest(path, options = {}) {
@@ -10,14 +27,19 @@ export async function apiRequest(path, options = {}) {
     headers.set("Content-Type", "application/json");
   }
 
-  const token = readAuthToken();
-  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const method = (options.method || "GET").toUpperCase();
+  if (!["GET", "HEAD", "OPTIONS", "TRACE"].includes(method)) {
+    const csrfToken = await ensureCsrfToken();
+    headers.set("X-XSRF-TOKEN", csrfToken);
+  }
 
   const cartToken = localStorage.getItem("bookstore_cart_token");
   if (cartToken) headers.set("X-Cart-Token", cartToken);
 
   const response = await fetch(`${API_BASE}${path}`, {
     ...options,
+    method,
+    credentials: "include",
     headers
   });
 
@@ -77,6 +99,8 @@ export const login = (email, password) =>
     method: "POST",
     body: JSON.stringify({ email, password })
   });
+
+export const logout = () => apiRequest("/api/auth/logout", { method: "POST" });
 
 export const checkout = (shippingAddress) =>
   apiRequest("/api/checkout", {

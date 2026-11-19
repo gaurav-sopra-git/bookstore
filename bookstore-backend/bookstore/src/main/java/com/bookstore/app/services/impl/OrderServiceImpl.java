@@ -68,7 +68,7 @@ public class OrderServiceImpl implements OrderService {
 			if (ci.getQuantity() > book.getStock())
 				throw new BusinessException("Insufficient stock for " + book.getTitle());
 			book.decreaseStock(ci.getQuantity());
-			Optional<BookPrice> bookPrice = priceRepo.findByBookIdAndCurrency(ci.getBook().getId(), "INR");
+			Optional<BookPrice> bookPrice = priceRepo.findByBookIdAndCurrency(ci.getBook().getId(), "USD");
 			OrderItem oi = OrderItem.snapshotOf(book, bookPrice.get().getPrice(), ci.getQuantity());
 			order.addItem(oi);
 		}

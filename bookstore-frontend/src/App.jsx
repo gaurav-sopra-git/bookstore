@@ -38,6 +38,7 @@ import {
   getCart,
   getOrders,
   login,
+  logout,
   register,
   removeCartItem,
   searchBooks,
@@ -453,7 +454,8 @@ export default function App() {
   }
 
   async function handleAuthSuccess(result) {
-    localStorage.setItem("bookstore_access_token", result.accessToken);
+    // The JWT is now held in an HttpOnly cookie; only non-sensitive UI data is stored here.
+    localStorage.removeItem("bookstore_access_token");
     localStorage.setItem("bookstore_user", JSON.stringify(result.user));
     setUser(result.user);
     // Transfer the anonymous cart to the authenticated cart, item by item.
@@ -476,13 +478,22 @@ export default function App() {
     }
   }
 
-  function signOut() {
+  async function signOut() {
+    try {
+      await logout();
+    } catch (error) {
+      setNotice({
+        type: "error",
+        text: `Could not complete sign out: ${error.message}`,
+      });
+      return;
+    }
     localStorage.removeItem("bookstore_access_token");
     localStorage.removeItem("bookstore_user");
     setUser(null);
     setOrders([]);
     setOrdersOpen(false);
-    refreshCart();
+    await refreshCart();
     setNotice({ type: "success", text: "You have signed out." });
   }
 
@@ -653,7 +664,12 @@ export default function App() {
         <Route
           path="/checkout"
           element={
-            <CheckoutPage cart={cart} onSubmit={placeOrder} busy={busy} />
+            <CheckoutPage
+              cart={cart}
+              onSubmit={placeOrder}
+              busy={busy}
+              isAuthenticated={!!user}
+            />
           }
         />
         <Route

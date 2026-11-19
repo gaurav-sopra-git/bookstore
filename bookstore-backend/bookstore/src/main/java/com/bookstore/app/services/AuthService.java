@@ -4,7 +4,7 @@ import com.bookstore.app.dtos.AuthDtos.*;
 
 public interface AuthService {
 	
-	AuthResponse register(RegisterRequest request);
+	AuthResult register(RegisterRequest request);
 
-	AuthResponse login(LoginRequest request);
+	AuthResult login(LoginRequest request);
 }

@@ -9,10 +9,15 @@ import {
 } from "lucide-react";
 import { money } from "../utils/format";
 
-export default function CheckoutPage({ cart, onSubmit, busy }) {
+export default function CheckoutPage({
+  cart,
+  onSubmit,
+  busy,
+  isAuthenticated,
+}) {
   const [address, setAddress] = useState("");
 
-  if (!localStorage.getItem("bookstore_access_token")) {
+  if (!isAuthenticated) {
     return (
       <main className="checkout-page">
         <div className="empty-cart-page">
