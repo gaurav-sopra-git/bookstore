@@ -27,7 +27,7 @@ The project is split into two applications:
 The suggested repository layout is:
 
 ```text
-bookworm/
+bookstore/
 ├── README.md
 ├── backend/
 │   ├── pom.xml
