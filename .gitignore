@@ -1,0 +1,45 @@
+
+# =========================
+# Frontend - React / Node
+# =========================
+bookstore-frontend/node_modules/
+bookstore-frontend/dist/
+bookstore-frontend/.env
+bookstore-frontend/.env.*
+!bookstore-frontend/.env.example
+
+# =========================
+# Backend - Spring Boot
+# =========================
+bookstore-backend/bookstore/target/
+bookstore-backend/bookstore/.env
+bookstore-backend/bookstore/.env.*
+!bookstore-backend/bookstore/.env.example
+
+# =========================
+# IDE files
+# =========================
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.bak
