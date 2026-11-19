@@ -92,12 +92,12 @@ the broker advertises an address reachable from Windows.
 ## 1. Clone the repository
 
 ```bash
-git clone
+git clone https://github.com/gaurav-sopra-git/bookstore.git
 cd bookworm
 ```
 
-The commands below assume the folders are named `backend` and
-`frontend`.
+The commands below assume the folders are named `bookstore-backend` and
+`bookstore-frontend`.
 
 ## 2. Create the MySQL database
 
