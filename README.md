@@ -93,7 +93,6 @@ the broker advertises an address reachable from Windows.
 
 ```bash
 git clone https://github.com/gaurav-sopra-git/bookstore.git
-cd bookworm
 ```
 
 The commands below assume the folders are named `bookstore-backend` and
