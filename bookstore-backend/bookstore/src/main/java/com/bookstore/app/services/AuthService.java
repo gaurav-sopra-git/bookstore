@@ -1,6 +1,8 @@
 package com.bookstore.app.services;
 
-import com.bookstore.app.dtos.AuthDtos.*;
+import com.bookstore.app.dtos.AuthDtos.AuthResult;
+import com.bookstore.app.dtos.AuthDtos.LoginRequest;
+import com.bookstore.app.dtos.AuthDtos.RegisterRequest;
 
 public interface AuthService {
 	

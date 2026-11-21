@@ -1,7 +1,8 @@
 package com.bookstore.app.services;
 
 import java.util.List;
-import com.bookstore.app.dtos.OrderDtos.*;
+
+import com.bookstore.app.dtos.OrderDtos.OrderResponse;
 
 
 public interface OrderService {

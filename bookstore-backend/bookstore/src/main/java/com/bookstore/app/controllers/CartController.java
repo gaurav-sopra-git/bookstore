@@ -1,12 +1,25 @@
 package com.bookstore.app.controllers;
 
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
-import com.bookstore.app.dtos.CartDtos.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.bookstore.app.dtos.CartDtos.AddItemRequest;
+import com.bookstore.app.dtos.CartDtos.CartResponse;
+import com.bookstore.app.dtos.CartDtos.UpdateQuantityRequest;
 import com.bookstore.app.security.AuthenticatedUser;
 import com.bookstore.app.services.CartService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/cart")

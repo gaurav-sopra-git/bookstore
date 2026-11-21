@@ -4,7 +4,10 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.bookstore.app.dtos.AuthDtos.*;
+
+import com.bookstore.app.dtos.AuthDtos.AuthResult;
+import com.bookstore.app.dtos.AuthDtos.LoginRequest;
+import com.bookstore.app.dtos.AuthDtos.RegisterRequest;
 import com.bookstore.app.entities.User;
 import com.bookstore.app.exceptions.BusinessException;
 import com.bookstore.app.mappers.UserMapper;

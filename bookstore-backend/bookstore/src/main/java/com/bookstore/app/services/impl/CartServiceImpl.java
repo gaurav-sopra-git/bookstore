@@ -1,14 +1,24 @@
 package com.bookstore.app.services.impl;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.bookstore.app.dtos.CartDtos.*;
-import com.bookstore.app.entities.*;
+
+import com.bookstore.app.dtos.CartDtos.CartItemResponse;
+import com.bookstore.app.dtos.CartDtos.CartResponse;
+import com.bookstore.app.entities.Book;
+import com.bookstore.app.entities.Cart;
+import com.bookstore.app.entities.CartItem;
+import com.bookstore.app.entities.User;
+import com.bookstore.app.exceptions.BusinessException;
+import com.bookstore.app.exceptions.ResourceNotFoundException;
 import com.bookstore.app.mappers.CartMapper;
-import com.bookstore.app.exceptions.*;
-import com.bookstore.app.repositories.*;
+import com.bookstore.app.repositories.BookRepository;
+import com.bookstore.app.repositories.CartRepository;
+import com.bookstore.app.repositories.UserRepository;
 import com.bookstore.app.services.CartService;
 
 @Service
