@@ -5,9 +5,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.bookstore.app.dtos.PaymentDtos.CheckoutSessionResponse;
+import com.bookstore.app.dtos.CheckoutSessionResponse;
 import com.bookstore.app.security.AuthenticatedUser;
 import com.bookstore.app.services.PaymentService;
 
@@ -23,10 +24,10 @@ public class PaymentController {
 
 	@PostMapping("/{orderNumber}/checkout-session")
 	public ResponseEntity<CheckoutSessionResponse> initiateCheckout(@PathVariable String orderNumber,
-			Authentication authentication) {
+			Authentication authentication, @RequestParam String paymentProvider) {
 
 		AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
 
-		return ResponseEntity.ok(paymentService.initiateCheckout(user.id(), orderNumber));
+		return ResponseEntity.ok(paymentService.initiateCheckout(user.id(), orderNumber, paymentProvider));
 	}
 }

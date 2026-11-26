@@ -12,12 +12,12 @@ public class RedisCacheErrorHandler implements CacheErrorHandler {
 
     @Override
     public void handleCacheGetError(RuntimeException exception, Cache cache, Object key) {
-        log.warn("Redis cache read failed for {}[{}]; falling back to the database", cache.getName(), key, exception);
+        log.warn("Redis cache read failed for {}[{}] hence falling back to the database", cache.getName(), key, exception);
     }
 
     @Override
     public void handleCachePutError(RuntimeException exception, Cache cache, Object key, Object value) {
-        log.warn("Redis cache write failed for {}[{}]; continuing without caching", cache.getName(), key, exception);
+        log.warn("Redis cache write failed for {}[{}] hence continuing without caching", cache.getName(), key, exception);
     }
 
     @Override

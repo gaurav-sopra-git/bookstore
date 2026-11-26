@@ -18,30 +18,31 @@ import com.bookstore.app.services.AuthService;
 @Service
 public class AuthServiceImpl implements AuthService {
 	
-	private final UserRepository users;
+	private final UserRepository userRepo;
 	private final PasswordEncoder encoder;
 	private final JwtService jwt;
 	private final UserMapper mapper;
 
-	public AuthServiceImpl(UserRepository users, PasswordEncoder encoder, JwtService jwt, UserMapper mapper) {
-		this.users = users;
+	public AuthServiceImpl(UserRepository userRepo, PasswordEncoder encoder, JwtService jwt, UserMapper mapper) {
+		this.userRepo = userRepo;
 		this.encoder = encoder;
 		this.jwt = jwt;
 		this.mapper = mapper;
 	}
 
 	@Transactional
-	public AuthResult register(RegisterRequest r) {
-		String email = r.email().trim().toLowerCase();
-		if (users.existsByEmail(email))
+	public AuthResult register(RegisterRequest request) {
+		String email = request.email().trim().toLowerCase();
+		if (userRepo.existsByEmail(email))
 			throw new BusinessException("An account with this email already exists");
-		User u = users.save(User.register(r.name(), email, encoder.encode(r.password())));
-		return response(u);
+		User user = User.register(request.name(), email, encoder.encode(request.password()));
+		User userEntity = userRepo.save(user);
+		return response(userEntity);
 	}
 
 	@Transactional(readOnly = true)
 	public AuthResult login(LoginRequest r) {
-		User u = users.findByEmail(r.email().trim().toLowerCase())
+		User u = userRepo.findByEmail(r.email().trim().toLowerCase())
 				.orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 		if (!encoder.matches(r.password(), u.getPassword()))
 			throw new BadCredentialsException("Invalid credentials");

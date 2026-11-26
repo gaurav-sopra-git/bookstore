@@ -2,13 +2,16 @@ package com.bookstore.app.services.impl;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.bookstore.app.dtos.PaymentDtos.CheckoutSessionResponse;
+import com.bookstore.app.dtos.CheckoutSessionResponse;
+import com.bookstore.app.dtos.PaymentDtos.PaymentRequest;
+import com.bookstore.app.dtos.PaymentDtos.PaymentResponse;
 import com.bookstore.app.entities.CustomerOrder;
 import com.bookstore.app.entities.Payment;
 import com.bookstore.app.enums.PaymentProvider;
@@ -17,28 +20,32 @@ import com.bookstore.app.events.OrderPlacedEvent;
 import com.bookstore.app.exceptions.ResourceNotFoundException;
 import com.bookstore.app.repositories.CustomerOrderRepository;
 import com.bookstore.app.repositories.PaymentRepository;
-import com.bookstore.app.services.PaymentGateway;
 import com.bookstore.app.services.PaymentService;
+import com.bookstore.app.strategies.PaymentStrategy;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
 	private final CustomerOrderRepository orderRepo;
 	private final PaymentRepository paymentRepo;
-	private final PaymentGateway paymentGateway;
+	//private final PaymentGateway paymentGateway;
 	private final ApplicationEventPublisher eventPublisher;
+	private final List<PaymentStrategy> paymentStrategies;
 
 	public PaymentServiceImpl(CustomerOrderRepository orders, PaymentRepository payments,
-			PaymentGateway paymentGateway, ApplicationEventPublisher eventPublisher) {
+			 ApplicationEventPublisher eventPublisher,  List<PaymentStrategy> paymentStrategies) {
 		this.orderRepo = orders;
 		this.paymentRepo = payments;
-		this.paymentGateway = paymentGateway;
+	//	this.paymentGateway = paymentGateway;
 		this.eventPublisher = eventPublisher;
+		this.paymentStrategies = paymentStrategies;
 	}
 
 	@Override
 	@Transactional
-	public CheckoutSessionResponse initiateCheckout(Long userId, String orderNumber) {
+	public CheckoutSessionResponse initiateCheckout(Long userId, String orderNumber, String paymentProviderFrmUI) {
+		
+		PaymentProvider requestedProvider = PaymentProvider.valueOf(paymentProviderFrmUI.trim().toUpperCase());
 
 		CustomerOrder order = orderRepo.findByOrderNumberAndUser_Id(orderNumber, userId)
 				.orElseThrow(() -> new ResourceNotFoundException("Order not found"));
@@ -55,7 +62,8 @@ public class PaymentServiceImpl implements PaymentService {
 				.orElse(null);
 
 		// Reuse an existing active Checkout Session.
-		if (payment != null && payment.getCheckoutSessionId() != null && payment.getCheckoutUrl() != null) {
+		if (payment != null && payment.getCheckoutSessionId() != null && payment.getCheckoutUrl() != null 
+				&& paymentProviderFrmUI.equalsIgnoreCase(payment.getProvider().name())) {
 
 			return new CheckoutSessionResponse(orderNumber, payment.getCheckoutUrl(), payment.getStatus().name());
 		}
@@ -64,16 +72,21 @@ public class PaymentServiceImpl implements PaymentService {
 		if (payment == null) {
 			long amountMinor = toMinorUnits(order.getTotalAmount());
 
-			payment = Payment.create(order, PaymentProvider.STRIPE, amountMinor, order.getCurrency(),
+			payment = Payment.create(order, requestedProvider, amountMinor, order.getCurrency(),
 					UUID.randomUUID().toString());
 
 			payment = paymentRepo.save(payment);
 		}
 
-		var request = new PaymentGateway.CheckoutPaymentRequest(order.getOrderNumber(), payment.getAmountMinor(),
-				payment.getCurrency(), "Papertrail order " + order.getOrderNumber(), payment.getIdempotencyKey());
+		PaymentRequest request = new PaymentRequest(order.getOrderNumber(),null, payment.getAmountMinor(), payment.getCurrency(), 
+				 "Bookworm order " + order.getOrderNumber(), payment.getIdempotencyKey());
 
-		var session = paymentGateway.createCheckoutSession(request);
+		PaymentStrategy paymentStrategy = paymentStrategies.stream()
+		.filter(ps -> paymentProviderFrmUI.equalsIgnoreCase(ps.getPaymentProvider().name()))
+		.findFirst()
+		.orElseThrow(() -> new IllegalArgumentException("Unsupported payment provider: " + paymentProviderFrmUI));	
+		
+		PaymentResponse session = paymentStrategy.createCheckoutSession(request);
 
 		payment.attachCheckoutSession(session.sessionId(), session.checkoutUrl());
 
@@ -135,15 +148,12 @@ public class PaymentServiceImpl implements PaymentService {
 	            .orElseThrow(() ->
 	                    new ResourceNotFoundException("Payment not found for Stripe session"));
 
-	    // A late failure notification must never downgrade a successful payment.
 	    if (payment.getStatus() == PaymentStatus.SUCCEEDED) {
 	        return;
 	    }
 
 	    payment.markFailed();
 
-	    // Keep the order pending so the customer can retry payment.
-	    // Inventory is NOT restored here.
 	}
 
 	private long toMinorUnits(BigDecimal amount) {

@@ -73,10 +73,10 @@ public class OrderServiceImpl implements OrderService {
 			order.addItem(oi);
 		}
 		
-		CustomerOrder saved = ordersRepo.save(order);
+		CustomerOrder custOrderEntity = ordersRepo.save(order);
 		cart.clearItems();
-		eventPublisher.publishEvent(OrderPlacedEvent.from(saved.getOrderNumber(), userId, saved.getTotalAmount()));
-		return mapper.toResponse(saved);
+		eventPublisher.publishEvent(OrderPlacedEvent.from(custOrderEntity.getOrderNumber(), userId, custOrderEntity.getTotalAmount()));
+		return mapper.toResponse(custOrderEntity);
 	}
 
 	@Transactional(readOnly = true)
