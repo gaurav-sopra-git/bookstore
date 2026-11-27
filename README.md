@@ -22,49 +22,6 @@ The project is split into two applications:
 - View previous orders after signing in.
 - Switch between light and dark appearance.
 
-## Project structure
-
-The suggested repository layout is:
-
-```text
-bookstore/
-|   ├── pom.xml
-│   └── src/
-│       ├── main/
-│       │   ├── java/com/bookstore/app/
-│       │   │   ├── configs/
-│       │   │   ├── controllers/
-│       │   │   ├── dtos/
-│       │   │   ├── entities/
-│       │   │   ├── enums/
-│       │   │   ├── events/
-│       │   │   ├── exceptions/
-│       │   │   ├── mappers/
-│       │   │   ├── repositories/
-│       │   │   ├── security/
-│       │   │   └── services/
-│       │   └── resources/
-│       └── test/
-└── frontend/
-    ├── package.json
-    ├── package-lock.json
-    ├── index.html
-    └── src/
-        ├── components/
-        ├── pages/
-        ├── utils/
-        ├── api.js
-        ├── App.jsx
-        ├── main.jsx
-        └── styles.css
-```
-
-The backend is organised by responsibility: controllers expose the API,
-services hold application logic, repositories access the database,
-entities represent persisted data, and DTOs define the request/response
-shapes. The frontend keeps page components, shared components, API calls
-and formatting helpers separate.
-
 ## Prerequisites
 
 Install or have access to:
@@ -108,9 +65,7 @@ Create or choose a MySQL user that has permission to create and update
 tables in this database.
 
 The backend uses Hibernate `ddl-auto=update` for local development, so
-the tables are created/updated when the application starts. This is
-convenient locally; use a controlled migration tool such as Flyway or
-Liquibase rather than relying on `update` in production.
+the tables are created/updated when the application starts.
 
 ## 3. Start Redis
 
@@ -151,22 +106,11 @@ The application declares the `bookstore.order-placed` topic and
 publishes order-related events after database transactions commit. A
 single local broker is sufficient for development.
 
-If Kafka runs inside WSL2 and the backend runs on Windows, check the
-broker's `advertised.listeners`; advertising `localhost` from inside
-WSL2 may not be reachable in every Windows/WSL setup. Use an address
-that the Windows host can reach.
-
 ## 5. Configure and start the backend
 
 Copy the backend `pom.xml` and `src` directory into `backend/`.
 
 Set the following environment variables before starting the application:
-
----
-
-Variable Example Required
-
----
 
 `DB_URL` `jdbc:mysql://localhost:3306/bookstore?useSSL=false&serverTimezone=UTC` Yes
 
@@ -176,8 +120,8 @@ Variable Example Required
 
 `JWT_SECRET` a random secret of at least 32 bytes Recommended
 
-`JWT_EXPIRATION_MS` `86400000` No; defaults to 24
-hours
+`JWT_EXPIRATION_MS` `3600000` No; defaults to 1
+hour
 
 `CORS_ALLOWED_ORIGINS` `http://localhost:5173` No
 
@@ -318,11 +262,6 @@ From `backend`:
 ```bash
 mvn test
 ```
-
-The test resources configure an isolated test database setup and disable
-Redis caching. The tests include controller tests using standalone
-MockMvc, service tests using Mockito, and repository tests using
-`@DataJpaTest`.
 
 ## Useful URLs
 
