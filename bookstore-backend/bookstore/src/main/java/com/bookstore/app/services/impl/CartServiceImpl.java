@@ -24,30 +24,32 @@ import com.bookstore.app.services.CartService;
 @Service
 public class CartServiceImpl implements CartService {
 	
-	private final CartRepository carts;
-	private final BookRepository books;
-	private final UserRepository users;
-	private final CartMapper mapper;
+	private final CartRepository cartRepo;
+	private final BookRepository bookRepo;
+	private final UserRepository userRepo;
+	private final CartMapper cartMapper;
 
-	public CartServiceImpl(CartRepository carts, BookRepository books, UserRepository users, CartMapper mapper) {
-		this.carts = carts;
-		this.books = books;
-		this.users = users;
-		this.mapper = mapper;
+	public CartServiceImpl(CartRepository cartRepo, BookRepository bookRepo, UserRepository userRepo, CartMapper cartMapper) {
+		this.cartRepo = cartRepo;
+		this.bookRepo = bookRepo;
+		this.userRepo = userRepo;
+		this.cartMapper = cartMapper;
 	}
 
 	@Transactional
 	public CartResponse createGuestCart() {
 		Cart cart = Cart.guest(UUID.randomUUID().toString());
-		return toResponse(carts.save(cart));
+		return toResponse(cartRepo.save(cart));
 	}
 
 	@Transactional(readOnly = true)
 	public CartResponse getCart(Long userId, String token) {
 		if (userId == null && (token == null || token.isBlank()))
 			return empty(token);
-		if (userId != null && carts.findByUser_Id(userId).isEmpty())
+		
+		if (userId != null && cartRepo.findByUser_Id(userId).isEmpty())
 			return empty(null);
+		
 		return toResponse(findCart(userId, token));
 	}
 
@@ -56,10 +58,15 @@ public class CartServiceImpl implements CartService {
 		if (quantity < 1)
 			throw new BusinessException("Quantity must be at least 1");
 		Cart cart = resolveOrCreate(userId, token);
-		Book book = books.findById(bookId)
+		
+		Book book = bookRepo.findById(bookId)
 				.orElseThrow(() -> new ResourceNotFoundException("Book not found: " + bookId));
-		CartItem existing = cart.getItems().stream().filter(i -> i.getBook().getId().equals(bookId)).findFirst()
+		
+		CartItem existing = cart.getItems().stream()
+				.filter(i -> i.getBook().getId().equals(bookId))
+				.findFirst()
 				.orElse(null);
+		
 		int newQty = quantity + (existing == null ? 0 : existing.getQuantity());
 		if (newQty > book.getStock())
 			throw new BusinessException("Requested quantity exceeds available stock for: " + book.getTitle());
@@ -68,7 +75,7 @@ public class CartServiceImpl implements CartService {
 			cart.addItem(item);
 		} else
 			existing.changeQuantity(newQty);
-		return toResponse(carts.save(cart));
+		return toResponse(cartRepo.save(cart));
 	}
 
 	@Transactional
@@ -93,34 +100,34 @@ public class CartServiceImpl implements CartService {
 
 	@Transactional
 	public void clear(Long userId) {
-		carts.findByUser_Id(userId).ifPresent(c -> {
+		cartRepo.findByUser_Id(userId).ifPresent(c -> {
 			c.clearItems();
 		});
 	}
 
 	private Cart resolveOrCreate(Long userId, String token) {
 		if (userId != null) {
-			User user = users.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-			return carts.findByUserIdWithItems(userId).orElseGet(() -> {
+			User user = userRepo.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+			return cartRepo.findByUserIdWithItems(userId).orElseGet(() -> {
 				Cart c = Cart.forUser(user);
-				return carts.save(c);
+				return cartRepo.save(c);
 			});
 		}
 		if (token == null || token.isBlank())
 			throw new BusinessException("X-Cart-Token header is required for guest carts");
-		return carts.findByTokenWithItems(token).orElseGet(() -> {
+		return cartRepo.findByTokenWithItems(token).orElseGet(() -> {
 			Cart c = Cart.guest(token);
-			return carts.save(c);
+			return cartRepo.save(c);
 		});
 	}
 
 	private Cart findCart(Long userId, String token) {
 		if (userId != null)
-			return carts.findByUserIdWithItems(userId)
+			return cartRepo.findByUserIdWithItems(userId)
 					.orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 		if (token == null || token.isBlank())
 			throw new ResourceNotFoundException("Cart not found");
-		return carts.findByTokenWithItems(token).orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+		return cartRepo.findByTokenWithItems(token).orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 	}
 
 	private CartItem findItem(Cart c, Long bookId) {
@@ -135,7 +142,7 @@ public class CartServiceImpl implements CartService {
 	
 	private CartResponse toResponse(Cart c) {
 		List<CartItemResponse> items = c.getItems().stream()
-				.map(mapper::toItemResponse)
+				.map(cartMapper::toItemResponse)
 				.toList();
 		
 		int count = items.stream()

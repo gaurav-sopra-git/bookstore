@@ -1,6 +1,5 @@
 package com.bookstore.app.security;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 @Service
@@ -19,9 +19,10 @@ public class JwtService {
 	private final long expirationMs;
 
 	public JwtService(@Value("${app.jwt.secret}") String secret, @Value("${app.jwt.expiration-ms}") long expirationMs) {
-		if (secret.getBytes(StandardCharsets.UTF_8).length < 32)
+		byte[] keyBytes = Decoders.BASE64.decode(secret);
+		if (keyBytes.length < 32)
 			throw new IllegalArgumentException("JWT secret must contain at least 32 bytes");
-		this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+		this.key = Keys.hmacShaKeyFor(keyBytes);
 		this.expirationMs = expirationMs;
 	}
 

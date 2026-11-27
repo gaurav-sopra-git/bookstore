@@ -2,7 +2,6 @@ package com.bookstore.app.services.impl;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;

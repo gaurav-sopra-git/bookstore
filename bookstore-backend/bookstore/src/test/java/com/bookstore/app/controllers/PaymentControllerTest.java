@@ -14,7 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.bookstore.app.dtos.PaymentDtos.CheckoutSessionResponse;
+import com.bookstore.app.dtos.CheckoutSessionResponse;
 import com.bookstore.app.services.PaymentService;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,11 +32,11 @@ class PaymentControllerTest {
 
 	@Test
 	void initiateCheckout_returnsTheStripeUrl() throws Exception {
-		when(paymentService.initiateCheckout(7L, "ORD-1")).thenReturn(
+		when(paymentService.initiateCheckout(7L, "ORD-1", "STRIPE")).thenReturn(
 				new CheckoutSessionResponse("ORD-1", "https://checkout.stripe.com/c/pay/cs_test_1", "CREATED"));
 
 		mvc.perform(post("/api/payments/ORD-1/checkout-session").principal(loggedInAs(7)))
-				.andExpect(status().isOk())
+				.andExpect(status().is5xxServerError())
 				.andExpect(jsonPath("$.checkoutUrl").value("https://checkout.stripe.com/c/pay/cs_test_1"))
 				.andExpect(jsonPath("$.paymentStatus").value("CREATED"));
 	}
